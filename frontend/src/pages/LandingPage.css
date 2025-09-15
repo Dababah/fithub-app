@@ -1,0 +1,93 @@
+/* src/LandingPage.css */
+
+.card-with-background {
+  color: white;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px; /* Sudut sedikit membulat */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Bayangan lembut */
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out; /* Transisi untuk hover */
+}
+
+/* Hover effect untuk card */
+.card-with-background:hover {
+  transform: translateY(-5px); /* Sedikit naik saat di-hover */
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); /* Bayangan lebih kuat saat di-hover */
+}
+
+/* Pseudo-element untuk background (gambar) */
+.card-with-background::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat; /* Pastikan gambar tidak berulang */
+  z-index: 1;
+  transition: transform 0.4s ease-in-out; /* Transisi untuk zoom gambar saat hover */
+  /* Properti background-image akan diatur dari variabel CSS */
+  background-image: var(
+    --background-url,
+    none
+  ); /* Default none jika variabel tidak diset */
+}
+
+/* Hover effect untuk gambar di dalam card */
+.card-with-background:hover::before {
+  transform: scale(1.05); /* Gambar sedikit membesar saat di-hover */
+}
+
+/* Pseudo-element untuk overlay agar teks lebih mudah dibaca */
+.card-with-background::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Menggunakan gradien untuk overlay agar lebih dinamis */
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.4) 0%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
+  z-index: 2;
+  border-radius: 12px; /* Sesuaikan dengan border-radius card */
+  transition: background 0.3s ease-in-out; /* Transisi untuk overlay saat hover */
+}
+
+/* Hover effect untuk overlay */
+.card-with-background:hover::after {
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.5) 0%,
+    rgba(0, 0, 0, 0.8) 100%
+  ); /* Overlay sedikit lebih gelap saat hover */
+}
+
+/* Mengatur posisi konten agar berada di atas overlay dan gambar */
+.card-with-background .card-body {
+  position: relative;
+  z-index: 3;
+  display: flex; /* Menggunakan flexbox untuk penataan konten */
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%; /* Memastikan body mengisi tinggi card */
+  padding: 20px; /* Padding yang lebih baik */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6); /* Sedikit bayangan pada teks */
+}
+
+.card-with-background .card-title {
+  font-size: 1.75rem; /* Ukuran judul lebih besar */
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.card-with-background .card-text {
+  font-size: 1rem;
+  line-height: 1.6;
+}
