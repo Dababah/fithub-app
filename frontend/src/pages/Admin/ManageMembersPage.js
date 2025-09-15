@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Modal, Form, Alert, Spinner, Badge } from "react-bootstrap";
 import memberService from "../../services/memberService";
-import bgMembers from "../../assets/images/9.jpeg"; // background image
+import bgMembers from "../../assets/images/9.jpeg";
 import moment from "moment";
 
 const glassCard = {
@@ -19,6 +19,7 @@ const ManageMembersPage = () => {
   const [filteredMembers, setFilteredMembers] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -53,7 +54,6 @@ const ManageMembersPage = () => {
     fetchMembers();
   }, []);
 
-  // Search filter
   useEffect(() => {
     if (!search) {
       setFilteredMembers(members);
@@ -71,6 +71,17 @@ const ManageMembersPage = () => {
     }
   }, [search, members]);
 
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => setSuccess(""), 5000);
+      return () => clearTimeout(timer);
+    }
+    if (error) {
+      const timer = setTimeout(() => setError(""), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [success, error]);
+
   const handleShowModal = (member = null) => {
     setEditingMember(member);
     if (member) {
@@ -86,7 +97,6 @@ const ManageMembersPage = () => {
         endDate: membership.endDate ? moment(membership.endDate).format("YYYY-MM-DD") : "",
       });
     } else {
-      setEditingMember(null);
       setFormData({
         fullName: "",
         email: "",
@@ -106,31 +116,73 @@ const ManageMembersPage = () => {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setIsSaving(true);
 
     if (!formData.fullName || !formData.email || !formData.phone) {
       setError("Nama, email, dan telepon wajib diisi.");
+      setIsSaving(false);
       return;
+    }
+    
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        setError("Format email tidak valid.");
+        setIsSaving(false);
+        return;
+    }
+
+    if (!editingMember && !formData.password) {
+        setError("Password wajib diisi untuk anggota baru.");
+        setIsSaving(false);
+        return;
+    }
+
+    if (formData.packageName && (!formData.startDate || !formData.endDate)) {
+      setError("Tanggal mulai dan berakhir wajib diisi untuk paket.");
+      setIsSaving(false);
+      return;
+    }
+    if (formData.startDate && formData.endDate && moment(formData.startDate).isAfter(moment(formData.endDate))) {
+        setError("Tanggal mulai tidak boleh setelah tanggal berakhir.");
+        setIsSaving(false);
+        return;
     }
 
     try {
-      const memberData = {
-        fullName: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        membership: {
-          status: formData.status,
-          packageName: formData.packageName || null,
-          startDate: formData.startDate || null,
-          endDate: formData.endDate || null,
-        },
+      const membershipData = {
+        status: formData.status,
+        packageName: formData.packageName || null,
+        startDate: formData.startDate || null,
+        endDate: formData.endDate || null,
       };
 
       if (!editingMember) {
-        memberData.password = formData.password;
+        const memberData = {
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password,
+          membership: membershipData,
+        };
         await memberService.createMember(memberData);
         setSuccess("✅ Anggota berhasil ditambahkan.");
       } else {
-        await memberService.updateMember(editingMember.id, memberData);
+        const updatePayload = {
+          fullName: formData.fullName,
+          phone: formData.phone,
+          membership: membershipData,
+        };
+
+        // Hanya kirimkan password jika diisi
+        if (formData.password) {
+          updatePayload.password = formData.password;
+        }
+        
+        // Hanya kirimkan email jika diubah
+        if (formData.email !== editingMember.email) {
+            updatePayload.email = formData.email;
+        }
+
+        await memberService.updateMember(editingMember.id, updatePayload);
         setSuccess("✅ Data anggota berhasil diperbarui.");
       }
 
@@ -138,17 +190,21 @@ const ManageMembersPage = () => {
       setShowModal(false);
     } catch (err) {
       setError(err.response?.data?.message || "Gagal menyimpan data.");
+    } finally {
+      setIsSaving(false);
     }
   };
-
+  
   const handleDelete = async (id) => {
     if (!window.confirm("Apakah Anda yakin ingin menghapus anggota ini?")) return;
+    setError("");
+    setSuccess("");
     try {
       await memberService.deleteMember(id);
       setSuccess("✅ Anggota berhasil dihapus.");
       fetchMembers();
     } catch (err) {
-      setError("Gagal menghapus anggota.");
+      setError(err.response?.data?.message || "Gagal menghapus anggota.");
     }
   };
 
@@ -253,7 +309,6 @@ const ManageMembersPage = () => {
         </Table>
       </div>
 
-      {/* Modal Tambah/Edit */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>{editingMember ? "✏️ Edit Anggota" : "➕ Tambah Anggota"}</Modal.Title>
@@ -288,16 +343,25 @@ const ManageMembersPage = () => {
                 required
               />
             </Form.Group>
-            {!editingMember && (
-              <Form.Group className="mb-3">
-                <Form.Label>Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required
-                />
-              </Form.Group>
+            {editingMember ? (
+                <Form.Group className="mb-3">
+                    <Form.Label>Password (Biarkan kosong jika tidak diubah)</Form.Label>
+                    <Form.Control
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    />
+                </Form.Group>
+            ) : (
+                <Form.Group className="mb-3">
+                    <Form.Label>Password</Form.Label>
+                    <Form.Control
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      required
+                    />
+                </Form.Group>
             )}
             <Form.Group className="mb-3">
               <Form.Label>Paket</Form.Label>
@@ -343,15 +407,21 @@ const ManageMembersPage = () => {
               <Button variant="secondary" onClick={() => setShowModal(false)} className="me-2">
                 Batal
               </Button>
-              <Button type="submit" variant="primary">
-                Simpan
+              <Button type="submit" variant="primary" disabled={isSaving}>
+                {isSaving ? (
+                    <>
+                        <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-1" />
+                        Menyimpan...
+                    </>
+                ) : (
+                    "Simpan"
+                )}
               </Button>
             </div>
           </Form>
         </Modal.Body>
       </Modal>
 
-      {/* Modal Profil Anggota */}
       <Modal show={showProfile} onHide={() => setShowProfile(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>👤 Profil Anggota</Modal.Title>

@@ -9,10 +9,10 @@ import {
   Alert,
   Modal,
   Form,
-  InputGroup,
 } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import QRCode from "react-qr-code";
+// Pastikan komponen-komponen ini diekspor dengan "export default"
 import AttendanceChart from "../../components/dashboard/AttendanceChart";
 import MemberTable from "../../components/dashboard/MemberTable";
 import memberService from "../../services/memberService";
@@ -34,7 +34,6 @@ export default function AdminDashboard() {
     members: [],
     date: "",
   });
-  const [selectedMember, setSelectedMember] = useState(null);
 
   const baseCardStyle = {
     borderRadius: "20px",
@@ -131,7 +130,8 @@ export default function AdminDashboard() {
         className="d-flex flex-column justify-content-center align-items-center vh-100"
         style={{
           background: `url(${bgMembers}) no-repeat center center/cover`,
-        }}>
+        }}
+      >
         <Spinner animation="border" variant="light" />
         <p className="mt-3 text-light">Memuat data dasbor...</p>
       </Container>
@@ -145,36 +145,42 @@ export default function AdminDashboard() {
       style={{
         background: `url(${bgMembers}) no-repeat center center/cover`,
         backgroundAttachment: "fixed",
-      }}>
+      }}
+    >
       <div
         style={{
           background: "rgba(0,0,0,0.6)",
           borderRadius: "20px",
           padding: "2rem",
-        }}>
+        }}
+      >
         <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
           <h3
             className="fw-bold text-light"
-            style={{ textShadow: "1px 1px 4px rgba(0,0,0,0.6)" }}>
+            style={{ textShadow: "1px 1px 4px rgba(0,0,0,0.6)" }}
+          >
             📊 Admin Dashboard
           </h3>
           <div className="d-flex gap-2 mt-3 mt-md-0">
             <Button
               variant="outline-info"
               onClick={openAttendanceModal}
-              className="rounded-pill shadow-sm">
+              className="rounded-pill shadow-sm"
+            >
               <i className="bi bi-person-check me-1"></i> Kelola Kehadiran
             </Button>
             <Button
               variant="outline-light"
               onClick={fetchData}
-              className="rounded-pill shadow-sm">
+              className="rounded-pill shadow-sm"
+            >
               <i className="bi bi-arrow-clockwise me-1"></i> Refresh
             </Button>
             <Button
               variant="primary"
               onClick={() => navigate("/admin/members")}
-              className="rounded-pill shadow-sm">
+              className="rounded-pill shadow-sm"
+            >
               <i className="bi bi-people-fill me-1"></i> Kelola Anggota
             </Button>
           </div>
@@ -227,10 +233,12 @@ export default function AdminDashboard() {
                     ...baseCardStyle,
                     borderLeft: `6px solid ${item.color}`,
                   })
-                }>
+                }
+              >
                 <i
                   className={`bi ${item.icon} display-6 mb-2`}
-                  style={{ color: item.color }}></i>
+                  style={{ color: item.color }}
+                ></i>
                 <h5 style={{ color: item.color }}>{item.label}</h5>
                 <h1 className="display-5 fw-bold">{item.value}</h1>
               </Card>
@@ -270,7 +278,8 @@ export default function AdminDashboard() {
         show={qrModal.show}
         onHide={() => setQrModal({ show: false, member: null })}
         centered
-        style={{ backdropFilter: "blur(5px)" }}>
+        style={{ backdropFilter: "blur(5px)" }}
+      >
         <Modal.Header closeButton className="bg-dark text-light border-0">
           <Modal.Title>QR Anggota</Modal.Title>
         </Modal.Header>
@@ -280,7 +289,12 @@ export default function AdminDashboard() {
               <h5>{qrModal.member.name}</h5>
               <p className="text-muted">ID: {qrModal.member.id}</p>
               <div className="p-3 bg-light rounded d-inline-block">
-                <QRCode value={qrModal.member.id.toString()} size={200} />
+                {/* Menampilkan QR Code dari backend */}
+                <img
+                  src={`http://localhost:4000/api/uploads/qr_codes/qr_member_1.png/${qrModal.member.id}`}
+                  alt={`QR Code ${qrModal.member.name}`}
+                  style={{ width: "200px", height: "200px" }}
+                />
               </div>
               <p className="mt-3 text-muted">Scan untuk check-in/check-out</p>
             </>
@@ -289,7 +303,8 @@ export default function AdminDashboard() {
         <Modal.Footer className="bg-dark border-0">
           <Button
             variant="secondary"
-            onClick={() => setQrModal({ show: false, member: null })}>
+            onClick={() => setQrModal({ show: false, member: null })}
+          >
             Tutup
           </Button>
         </Modal.Footer>
@@ -300,7 +315,8 @@ export default function AdminDashboard() {
         show={detailModal.show}
         onHide={() => setDetailModal({ show: false, member: null })}
         centered
-        style={{ backdropFilter: "blur(5px)" }}>
+        style={{ backdropFilter: "blur(5px)" }}
+      >
         <Modal.Header closeButton className="bg-dark text-light border-0">
           <Modal.Title>Detail Anggota</Modal.Title>
         </Modal.Header>
@@ -327,7 +343,8 @@ export default function AdminDashboard() {
                       detailModal.member.status === "active"
                         ? "text-success"
                         : "text-danger"
-                    }>
+                    }
+                  >
                     {detailModal.member.status}
                   </span>
                 </p>
@@ -342,7 +359,8 @@ export default function AdminDashboard() {
         <Modal.Footer className="bg-dark border-0">
           <Button
             variant="secondary"
-            onClick={() => setDetailModal({ show: false, member: null })}>
+            onClick={() => setDetailModal({ show: false, member: null })}
+          >
             Tutup
           </Button>
         </Modal.Footer>
@@ -355,7 +373,8 @@ export default function AdminDashboard() {
           setAttendanceModal({ show: false, members: [], date: "" })
         }
         centered
-        style={{ backdropFilter: "blur(5px)" }}>
+        style={{ backdropFilter: "blur(5px)" }}
+      >
         <Modal.Header closeButton className="bg-dark text-light border-0">
           <Modal.Title>Kelola Kehadiran</Modal.Title>
         </Modal.Header>
@@ -364,7 +383,8 @@ export default function AdminDashboard() {
             attendanceModal.members.map((member) => (
               <div
                 key={member.id}
-                className="d-flex justify-content-between align-items-center py-2 border-bottom">
+                className="d-flex justify-content-between align-items-center py-2 border-bottom"
+              >
                 <span>{member.name}</span>
                 <Form.Check
                   type="switch"
@@ -381,13 +401,15 @@ export default function AdminDashboard() {
             variant="secondary"
             onClick={() =>
               setAttendanceModal({ show: false, members: [], date: "" })
-            }>
+            }
+          >
             Batal
           </Button>
           <Button
             variant="success"
             onClick={saveAttendance}
-            disabled={isSubmitting}>
+            disabled={isSubmitting}
+          >
             {isSubmitting ? <Spinner animation="border" size="sm" /> : "Simpan"}
           </Button>
         </Modal.Footer>
