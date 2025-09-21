@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Card, Alert, Spinner, Badge, Modal, Form, Button } from "react-bootstrap";
+import QRCode from 'react-qr-code';
+import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomOneDarkReasonable } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import memberService from '../../services/memberService';
 import moment from 'moment';
-import mainBg from '../../assets/images/5.jpeg';
-import defaultProfile from '../../assets/images/11.jpeg'; // Pastikan Anda memiliki gambar default
+import darkBg from '../../assets/images/5.jpeg'; // Asumsi Anda punya gambar latar belakang gelap
+import defaultProfile from '../../assets/images/11.jpeg';
 
 export default function MemberDashboard() {
   const [profile, setProfile] = useState(null);
@@ -45,12 +48,8 @@ export default function MemberDashboard() {
     try {
       const formData = new FormData();
       formData.append('profileImage', profileImage);
-
-      // Catatan: Jika ada data lain yang ingin Anda kirim, tambahkan di sini.
-      // Contoh: formData.append('description', 'Foto profil baru');
-
       await memberService.uploadProfileImage(formData);
-      await fetchMemberData(); // Muat ulang data untuk menampilkan foto baru
+      await fetchMemberData();
       setShowImageModal(false);
       setProfileImage(null);
     } catch (e) {
@@ -68,69 +67,70 @@ export default function MemberDashboard() {
   const styles = {
     page: {
       minHeight: '100vh',
-      backgroundImage: `url(${mainBg})`,
+      backgroundImage: `url(${darkBg})`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundAttachment: 'fixed',
       paddingTop: '3rem',
       paddingBottom: '3rem',
+      color: '#e2e8f0', // Teks terang
     },
     overlay: {
       minHeight: '100vh',
-      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+      backgroundColor: 'rgba(26, 32, 44, 0.9)', // Overlay gelap
       paddingTop: '3rem',
       paddingBottom: '3rem',
     },
     card: {
-      borderRadius: '15px',
-      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.15)',
-      border: 'none',
-      transition: 'transform 0.3s ease-in-out',
-      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      borderRadius: '20px',
+      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.4)',
+      border: '1px solid rgba(45, 55, 72, 0.5)',
+      backgroundColor: 'rgba(45, 55, 72, 0.95)', // Card gelap transparan
+      transition: 'all 0.4s ease-in-out',
+      color: '#e2e8f0',
     },
     cardHover: {
-      transform: 'translateY(-5px)',
+      transform: 'translateY(-10px) scale(1.02)',
+      boxShadow: '0 15px 50px rgba(0, 0, 0, 0.6)',
     },
-    profileSection: {
+    profileImage: {
+      width: '150px',
+      height: '150px',
+      borderRadius: '50%',
+      objectFit: 'cover',
+      border: '5px solid #48bb78', // Border hijau
+      boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
+      transition: 'transform 0.3s ease',
+    },
+    profileImageHover: {
+      transform: 'scale(1.05)',
+    },
+    profileName: {
+      fontSize: '2rem',
+      fontWeight: '700',
+      color: '#48bb78', // Judul hijau
+      textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
+    },
+    badge: {
+      fontSize: '1rem',
+      padding: '0.6rem 1.2rem',
+      borderRadius: '30px',
+      fontWeight: '600',
+    },
+    heading: {
+      fontWeight: '700',
+      color: '#cbd5e0',
+      borderLeft: '4px solid #48bb78',
+      paddingLeft: '1rem',
+      marginBottom: '1.5rem',
+    },
+    qrSection: {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      textAlign: 'center',
-      marginBottom: '1.5rem',
-      position: 'relative',
-    },
-    profileImage: {
-      width: '120px',
-      height: '120px',
-      borderRadius: '50%',
-      marginBottom: '1rem',
-      objectFit: 'cover',
-      border: '3px solid #0d6efd',
-      boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-    },
-    editButton: {
-      position: 'absolute',
-      bottom: '10px',
-      right: '10px',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      color: 'white',
-      borderRadius: '50%',
-      width: '35px',
-      height: '35px',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      cursor: 'pointer',
-    },
-    profileName: {
-      fontSize: '1.75rem',
-      fontWeight: '600',
-      color: '#343a40',
-    },
-    badge: {
-      fontSize: '0.9rem',
-      padding: '0.5rem 1rem',
-      borderRadius: '20px',
+      padding: '1.5rem',
+      backgroundColor: 'rgba(26, 32, 44, 0.7)',
+      borderRadius: '15px',
     },
   };
 
@@ -138,8 +138,8 @@ export default function MemberDashboard() {
     return (
       <div style={styles.page}>
         <div style={styles.overlay} className="d-flex justify-content-center align-items-center">
-          <Spinner animation="border" variant="primary" />
-          <p className="ms-3">Memuat data...</p>
+          <Spinner animation="border" variant="success" />
+          <p className="ms-3 text-white">Memuat data...</p>
         </div>
       </div>
     );
@@ -148,98 +148,134 @@ export default function MemberDashboard() {
   return (
     <div style={styles.page}>
       <div style={styles.overlay}>
-        <Container className="my-5">
-          <h3 className="fw-bold mb-4 text-center text-secondary">Dasbor Member</h3>
+        <Container className="py-5">
+          <h1 className="text-center mb-5" style={styles.heading}>Dasbor Member</h1>
           {error && <Alert variant="danger" className="text-center">{error}</Alert>}
-          <Row className="g-4">
+          <Row className="g-5 justify-content-center">
             {profile && (
-              <Col md={6}>
+              <Col lg={6}>
                 <Card 
-                  className="p-4 shadow-lg h-100" 
+                  className="shadow-xl" 
                   style={styles.card}
-                  onMouseOver={(e) => e.currentTarget.style.transform = styles.cardHover.transform}
-                  onMouseOut={(e) => e.currentTarget.style.transform = 'none'}
+                  onMouseOver={(e) => Object.assign(e.currentTarget.style, styles.cardHover)}
+                  onMouseOut={(e) => Object.assign(e.currentTarget.style, { transform: 'none', boxShadow: '0 10px 40px rgba(0, 0, 0, 0.4)' })}
                 >
-                  <div style={styles.profileSection}>
-                    <div style={{ position: 'relative' }}>
+                  <Card.Body className="p-5">
+                    <div className="text-center mb-4 position-relative">
                       <img 
                         src={profile.profilePictureUrl ? `http://192.168.56.1:4000${profile.profilePictureUrl}` : defaultProfile}
                         alt="Profil" 
-                        style={styles.profileImage} 
+                        style={styles.profileImage}
+                        className="mb-3"
                       />
                       <Button 
-                        variant="link" 
-                        style={styles.editButton} 
+                        variant="dark" 
+                        size="sm"
+                        style={{ position: 'absolute', bottom: 20, right: 100, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: '50%' }} 
                         onClick={() => setShowImageModal(true)}
                       >
-                        <i className="bi bi-pencil-fill"></i>
+                        <i className="bi bi-camera-fill"></i>
                       </Button>
+                      <h4 style={styles.profileName}>{profile.fullName}</h4>
+                      <p className="text-muted">{profile.membership?.packageName || "Tidak Ada Paket"}</p>
                     </div>
-                    <h4 style={styles.profileName}>{profile.fullName}</h4>
-                  </div>
-                  <h5 className="fw-bold text-primary">Informasi Kontak</h5>
-                  <p><i className="bi bi-envelope me-2 text-primary"></i><strong>Email:</strong> {profile.email}</p>
-                  <p><i className="bi bi-phone me-2 text-primary"></i><strong>Telepon:</strong> {profile.phone}</p>
-                  <hr />
-                  <h5 className="fw-bold text-success">Detail Keanggotaan</h5>
-                  {profile.membership ? (
-                    <>
-                      <p><i className="bi bi-box-fill me-2 text-success"></i><strong>Paket:</strong> {profile.membership.packageName}</p>
-                      <p><i className="bi bi-calendar-check me-2 text-success"></i><strong>Masa Berlaku:</strong> {moment(profile.membership.startDate).format('DD MMM YYYY')} - {moment(profile.membership.endDate).format('DD MMM YYYY')}</p>
-                      <p><i className="bi bi-patch-check-fill me-2 text-success"></i><strong>Status:</strong> <Badge bg={profile.membership.status === 'Aktif' ? 'success' : 'secondary'} style={styles.badge}>{profile.membership.status === 'Aktif' ? 'Aktif' : 'Nonaktif'}</Badge></p>
-                    </>
-                  ) : (
-                    <p>Tidak ada data keanggotaan.</p>
-                  )}
+
+                    <hr className="border-gray-600" />
+                    
+                    <h5 className="mt-4 mb-3" style={styles.heading}>Informasi Kontak</h5>
+                    <p><i className="bi bi-envelope me-3 text-success"></i><strong>Email:</strong> {profile.email}</p>
+                    <p><i className="bi bi-phone me-3 text-success"></i><strong>Telepon:</strong> {profile.phone}</p>
+                    
+                    <hr className="border-gray-600" />
+
+                    <h5 className="mt-4 mb-3" style={styles.heading}>Status Keanggotaan</h5>
+                    <p className="d-flex align-items-center mb-2">
+                      <i className="bi bi-calendar-check me-3 text-success"></i>
+                      <strong>Masa Berlaku:</strong> &nbsp;
+                      <span>
+                        {profile.membership ? `${moment(profile.membership.startDate).format('DD MMM YYYY')} - ${moment(profile.membership.endDate).format('DD MMM YYYY')}` : 'Tidak ada data'}
+                      </span>
+                    </p>
+                    <p className="d-flex align-items-center">
+                      <i className="bi bi-patch-check-fill me-3 text-success"></i>
+                      <strong>Status:</strong> &nbsp;
+                      <Badge bg={profile.membership?.status === 'Aktif' ? 'success' : 'secondary'} style={styles.badge}>
+                        {profile.membership?.status || 'Nonaktif'}
+                      </Badge>
+                    </p>
+                    
+                    {profile.qrToken && (
+                      <div className="mt-5 text-center" style={styles.qrSection}>
+                        <h5 className="mb-4 text-white">Kode QR untuk Check-in</h5>
+                        <QRCode
+                          value={profile.qrToken}
+                          size={200}
+                          bgColor="#1a202c"
+                          fgColor="#48bb78"
+                        />
+                        <p className="mt-3 text-sm text-muted">Scan kode ini di pintu masuk gym.</p>
+                      </div>
+                    )}
+                  </Card.Body>
                 </Card>
               </Col>
             )}
-            <Col md={6}>
+            <Col lg={6}>
               <Card 
-                className="p-4 shadow-lg h-100" 
+                className="shadow-xl" 
                 style={styles.card}
-                onMouseOver={(e) => e.currentTarget.style.transform = styles.cardHover.transform}
-                onMouseOut={(e) => e.currentTarget.style.transform = 'none'}
+                onMouseOver={(e) => Object.assign(e.currentTarget.style, styles.cardHover)}
+                onMouseOut={(e) => Object.assign(e.currentTarget.style, { transform: 'none', boxShadow: '0 10px 40px rgba(0, 0, 0, 0.4)' })}
               >
-                <h5 className="fw-bold text-info">Riwayat Kehadiran</h5>
-                {attendance.length > 0 ? (
-                  <ul className="list-unstyled">
-                    {attendance.map((att, index) => (
-                      <li key={index} className="mb-2">
-                        <i className="bi bi-calendar-event me-2 text-info"></i>
-                        {moment(att.checkInAt).format('DD MMMM YYYY, HH:mm')}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-muted">Tidak ada riwayat kehadiran.</p>
-                )}
+                <Card.Body className="p-5">
+                  <h5 className="mb-4" style={styles.heading}>Riwayat Kehadiran</h5>
+                  {attendance.length > 0 ? (
+                    <ul className="list-unstyled">
+                      {attendance.slice(0, 10).map((att, index) => (
+                        <li key={index} className="d-flex align-items-center mb-3 p-3 rounded" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
+                          <i className="bi bi-check-circle-fill me-3 text-success" style={{ fontSize: '1.5rem' }}></i>
+                          <div>
+                            <strong>Check-in:</strong> {moment(att.checkInAt).format('dddd, DD MMMM YYYY')}
+                            <br />
+                            <small className="text-muted">{moment(att.checkInAt).format('HH:mm:ss')}</small>
+                          </div>
+                        </li>
+                      ))}
+                      {attendance.length > 10 && <p className="text-center mt-3 text-muted">... Tampilkan lebih banyak</p>}
+                    </ul>
+                  ) : (
+                    <Alert variant="secondary" className="text-center">
+                      <i className="bi bi-info-circle me-2"></i>Tidak ada riwayat kehadiran.
+                    </Alert>
+                  )}
+                </Card.Body>
               </Card>
             </Col>
           </Row>
         </Container>
 
-        <Modal show={showImageModal} onHide={() => setShowImageModal(false)}>
-          <Modal.Header closeButton>
-            <Modal.Title>Unggah Foto Profil</Modal.Title>
+        <Modal show={showImageModal} onHide={() => setShowImageModal(false)} centered>
+          <Modal.Header closeButton style={{ borderBottom: 'none' }}>
+            <Modal.Title className="text-white">Unggah Foto Profil</Modal.Title>
           </Modal.Header>
           <Form onSubmit={handleImageUpload}>
             <Modal.Body>
               {error && <Alert variant="danger">{error}</Alert>}
               <Form.Group controlId="formFile" className="mb-3">
-                <Form.Label>Pilih Gambar</Form.Label>
+                <Form.Label className="text-white">Pilih Gambar</Form.Label>
                 <Form.Control 
                   type="file" 
                   accept="image/*" 
                   onChange={(e) => setProfileImage(e.target.files[0])} 
+                  className="bg-secondary text-white border-0"
                 />
               </Form.Group>
             </Modal.Body>
-            <Modal.Footer>
-              <Button variant="secondary" onClick={() => setShowImageModal(false)}>
+            <Modal.Footer style={{ borderTop: 'none' }}>
+              <Button variant="outline-light" onClick={() => setShowImageModal(false)}>
                 Batal
               </Button>
-              <Button variant="primary" type="submit" disabled={uploading}>
+              <Button variant="success" type="submit" disabled={uploading}>
                 {uploading ? <Spinner animation="border" size="sm" /> : "Unggah"}
               </Button>
             </Modal.Footer>

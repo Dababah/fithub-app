@@ -4,8 +4,25 @@
   "main": "index.js",
   "scripts": {
     "start": "react-scripts start",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
   },
+"jest": {
+  "testEnvironment": "jsdom",
+  "transform": {
+    "^.+\\.(js|jsx)$": "babel-jest"
+  },
+  "moduleFileExtensions": ["js", "jsx"],
+  "moduleNameMapper": {
+    "\\.(jpg|jpeg|png|gif|webp|svg|ico)$": "<rootDir>/__mocks__/fileMock.js",
+    "\\.(css|less|scss|sass)$": "identity-obj-proxy"
+  },
+  "transformIgnorePatterns": [
+    "/node_modules/(?!(axios)/)"
+  ]
+
+},
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -22,7 +39,8 @@
     "react-qr-code": "^2.0.18",
     "react-qr-reader-es6": "^2.2.1-2",
     "react-router-dom": "^6.22.3",
-    "react-scripts": "^5.0.1"
+    "react-scripts": "^5.0.1",
+    "react-syntax-highlighter": "^15.6.6"
   },
   "browserslist": {
     "production": [
@@ -36,5 +54,14 @@
       "last 1 safari version"
     ]
   },
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "@babel/preset-env": "^7.28.3",
+    "@babel/preset-react": "^7.27.1",
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "babel-jest": "^30.1.2",
+    "jest": "^27.5.1"
+  }
 }

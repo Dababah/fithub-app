@@ -12,7 +12,6 @@ import {
 } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import QRCode from "react-qr-code";
-// Pastikan komponen-komponen ini diekspor dengan "export default"
 import AttendanceChart from "../../components/dashboard/AttendanceChart";
 import MemberTable from "../../components/dashboard/MemberTable";
 import memberService from "../../services/memberService";
@@ -76,7 +75,8 @@ export default function AdminDashboard() {
   const openAttendanceModal = async () => {
     try {
       const res = await memberService.getAllMembers();
-      const membersWithAttendedStatus = res.data.members.map((member) => ({
+      // Perbaikan: res.data adalah array langsung
+      const membersWithAttendedStatus = res.data.map((member) => ({
         ...member,
         attended: false,
       }));
@@ -286,13 +286,13 @@ export default function AdminDashboard() {
         <Modal.Body className="bg-dark text-light text-center">
           {qrModal.member && (
             <>
-              <h5>{qrModal.member.name}</h5>
+              <h5>{qrModal.member.fullName}</h5>
               <p className="text-muted">ID: {qrModal.member.id}</p>
               <div className="p-3 bg-light rounded d-inline-block">
-                {/* Menampilkan QR Code dari backend */}
+                {/* Gunakan properti qrCodeUrl atau qrPath */}
                 <img
-                  src={`http://192.168.56.1:4000/api/uploads/qr_codes/qr_member_1.png/${qrModal.member.id}`}
-                  alt={`QR Code ${qrModal.member.name}`}
+                  src={qrModal.member.qrCodeUrl || qrModal.member.qrPath}
+                  alt={`QR Code ${qrModal.member.fullName}`}
                   style={{ width: "200px", height: "200px" }}
                 />
               </div>
@@ -324,33 +324,34 @@ export default function AdminDashboard() {
           {detailModal.member && (
             <div className="d-flex flex-column align-items-center">
               <img
-                src={detailModal.member.profileImageUrl || "placeholder.jpeg"}
+                src={
+                  detailModal.member.profilePictureUrl ||
+                  "/placeholder.jpeg"
+                }
                 alt="Profile"
                 className="rounded-circle mb-3"
                 style={{ width: "120px", height: "120px", objectFit: "cover" }}
               />
-              <h4 className="fw-bold">{detailModal.member.name}</h4>
+              <h4 className="fw-bold">{detailModal.member.fullName}</h4>
               <p className="text-muted mb-1">{detailModal.member.email}</p>
-              <p className="text-muted mb-3">
-                {detailModal.member.phone_number}
-              </p>
+              <p className="text-muted mb-3">{detailModal.member.phone}</p>
               <hr className="w-100 bg-secondary" />
               <div className="text-start w-100">
                 <p>
                   <strong>Status:</strong>{" "}
                   <span
                     className={
-                      detailModal.member.status === "active"
+                      detailModal.member.membership?.status === "Aktif"
                         ? "text-success"
                         : "text-danger"
                     }
                   >
-                    {detailModal.member.status}
+                    {detailModal.member.membership?.status || "Nonaktif"}
                   </span>
                 </p>
                 <p>
                   <strong>Bergabung:</strong>{" "}
-                  {new Date(detailModal.member.created_at).toLocaleDateString()}
+                  {new Date(detailModal.member.createdAt).toLocaleDateString()}
                 </p>
               </div>
             </div>
@@ -385,7 +386,7 @@ export default function AdminDashboard() {
                 key={member.id}
                 className="d-flex justify-content-between align-items-center py-2 border-bottom"
               >
-                <span>{member.name}</span>
+                <span>{member.fullName}</span>
                 <Form.Check
                   type="switch"
                   id={`switch-${member.id}`}

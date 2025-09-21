@@ -1,25 +1,34 @@
 import React, { useState } from 'react';
 import { Table, Button, Spinner, Alert } from 'react-bootstrap';
-import memberService from '../../services/memberService'; // ✅ Import objek layanan secara default
+import { FaTrash } from 'react-icons/fa'; // ✅ Tambahkan ikon
+import memberService from '../../services/memberService';
 
 export default function MemberTable({ members = [], refresh }) {
   const [error, setError] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
 
   const tableStyle = {
-    borderRadius: '8px',
+    borderRadius: '12px',
     overflow: 'hidden',
-    boxShadow: '0 0 10px rgba(0,0,0,0.05)',
+    boxShadow: '0 8px 30px rgba(0,0,0,0.1)',
   };
 
   const tableHeaderStyle = {
-    backgroundColor: '#343a40',
-    color: 'white',
+    backgroundColor: '#2c3e50', // Warna header lebih gelap dan profesional
+    color: '#ecf0f1',
+    fontWeight: '600',
+    fontSize: '1rem',
   };
 
   const tableRowStyle = {
-    transition: 'background-color 0.2s',
+    transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
     cursor: 'pointer',
+    backgroundColor: '#ffffff', // Latar belakang putih untuk baris
+  };
+
+  const tableRowHoverStyle = {
+    transform: 'translateY(-3px)',
+    boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
   };
 
   const formatID = (id) => {
@@ -32,7 +41,6 @@ export default function MemberTable({ members = [], refresh }) {
     setDeletingId(id);
     setError(null);
     try {
-      // ✅ Panggil fungsi dari objek layanan
       await memberService.deleteMember(id);
       await refresh();
     } catch (err) {
@@ -46,15 +54,15 @@ export default function MemberTable({ members = [], refresh }) {
   return (
     <div className="table-responsive" style={tableStyle}>
       {error && <Alert variant="danger">{error}</Alert>}
-      <Table striped hover responsive>
+      <Table striped bordered hover responsive className="m-0">
         <thead style={tableHeaderStyle}>
           <tr>
-            <th>ID</th>
-            <th>Nama</th>
-            <th>Email</th>
-            <th>Telepon</th>
-            <th>Kode QR</th>
-            <th>Aksi</th>
+            <th className="py-3">ID</th>
+            <th className="py-3">Nama</th>
+            <th className="py-3">Email</th>
+            <th className="py-3">Telepon</th>
+            <th className="py-3 text-center">Kode QR</th>
+            <th className="py-3 text-center">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -63,36 +71,45 @@ export default function MemberTable({ members = [], refresh }) {
               <tr 
                 key={m.id}
                 style={tableRowStyle}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = tableRowHoverStyle.transform;
+                  e.currentTarget.style.boxShadow = tableRowHoverStyle.boxShadow;
+                  e.currentTarget.style.backgroundColor = '#f1f1f1';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = 'none';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.backgroundColor = 'white';
+                }}
               >
-                <td>{formatID(m.id)}</td>
-                <td>{m.fullName}</td>
-                <td>{m.email}</td>
-                <td>{m.phone}</td>
-                <td>
+                <td className="align-middle">{formatID(m.id)}</td>
+                <td className="align-middle">{m.fullName}</td>
+                <td className="align-middle">{m.email}</td>
+                <td className="align-middle">{m.phone}</td>
+                <td className="text-center align-middle">
                   {m.qrPath ? (
-                    <img 
-                      src={process.env.REACT_APP_API_URL.replace('/api', '') + m.qrPath} 
-                      alt="QR Code" 
-                      width={60} 
-                      className="img-fluid rounded" 
+                    <img
+                      src={process.env.REACT_APP_API_URL.replace('/api', '') + m.qrPath}
+                      alt="QR Code"
+                      width={60}
+                      className="img-fluid rounded"
                     />
                   ) : (
                     '-'
                   )}
                 </td>
-                <td>
-                  <Button 
-                    size="sm" 
-                    variant="danger" 
+                <td className="text-center align-middle">
+                  <Button
+                    size="sm"
+                    variant="link"
+                    className="text-danger p-0 border-0"
                     onClick={() => onDelete(m.id)}
                     disabled={deletingId === m.id}
                   >
                     {deletingId === m.id ? (
-                      <Spinner as="span" animation="border" size="sm" />
+                      <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
                     ) : (
-                      'Hapus'
+                      <FaTrash /> // ✅ Gunakan ikon
                     )}
                   </Button>
                 </td>
@@ -100,7 +117,7 @@ export default function MemberTable({ members = [], refresh }) {
             ))
           ) : (
             <tr>
-              <td colSpan={6} className="text-center">Tidak ada data anggota.</td>
+              <td colSpan={6} className="text-center py-4">Tidak ada data anggota.</td>
             </tr>
           )}
         </tbody>

@@ -5,35 +5,9 @@ import { Chart, registerables } from "chart.js";
 // Wajib mendaftarkan plugin chart.js sekali saja
 Chart.register(...registerables);
 
-// Menerima 'data' sebagai props dari komponen induk
-export default function AttendanceChart({ data }) {
-  // Jika data tidak ada atau kosong, tampilkan pesan
-  if (!data || data.length === 0) {
-    return (
-      <div className="d-flex justify-content-center align-items-center h-100 text-muted">
-        Tidak ada data kehadiran yang tersedia.
-      </div>
-    );
-  }
+export default function AttendanceChart({ dataHarian, dataMingguan, dataPaket }) {
 
-  // Siapkan data untuk Chart.js
-  const chartData = {
-    labels: data.map(item => item.day), // ✅ Gunakan labels dari data dinamis
-    datasets: [
-      {
-        label: "Check-ins",
-        data: data.map(item => item.count), // ✅ Gunakan data dari data dinamis
-        fill: false,
-        borderColor: "#0d6efd",
-        backgroundColor: "#0d6efd",
-        tension: 0.3,
-        pointRadius: 5,
-        pointHoverRadius: 7,
-      },
-    ],
-  };
-
-  const options = {
+  const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -55,9 +29,82 @@ export default function AttendanceChart({ data }) {
     },
   };
 
+  // --- GRAFIK HARIAN ---
+  const dailyChartData = {
+    labels: dataHarian ? dataHarian.map((item) => item.day) : [],
+    datasets: [
+      {
+        label: "Check-in Harian",
+        data: dataHarian ? dataHarian.map((item) => item.count) : [],
+        fill: false,
+        borderColor: "#0d6efd",
+        backgroundColor: "#0d6efd",
+        tension: 0.3,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      },
+    ],
+  };
+
+  // --- GRAFIK MINGGUAN ---
+  const weeklyChartData = {
+    labels: dataMingguan ? dataMingguan.map((item) => item.week) : [],
+    datasets: [
+      {
+        label: "Check-in Mingguan",
+        data: dataMingguan ? dataMingguan.map((item) => item.count) : [],
+        fill: true,
+        borderColor: "#198754",
+        backgroundColor: "rgba(25, 135, 84, 0.2)",
+        tension: 0.3,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      },
+    ],
+  };
+
+  // --- GRAFIK BERDASARKAN PAKET ---
+  const packageChartData = {
+    labels: dataPaket?.labels || [],
+    datasets: dataPaket?.datasets || [],
+  };
+  
+  if (!dataHarian && !dataMingguan && !dataPaket) {
+    return (
+      <div className="d-flex justify-content-center align-items-center h-100 text-muted">
+        Tidak ada data kehadiran yang tersedia.
+      </div>
+    );
+  }
+
   return (
-    <div style={{ height: 300 }}>
-      <Line data={chartData} options={options} />
+    <div className="d-flex flex-column gap-5">
+      {dataHarian && dataHarian.length > 0 && (
+        <div style={{ marginBottom: '40px' }}>
+          <h5 style={{ textAlign: 'center', marginBottom: '20px' }}>Grafik Kehadiran Harian</h5>
+          <div style={{ height: 300 }}>
+            <Line data={dailyChartData} options={chartOptions} />
+          </div>
+        </div>
+      )}
+
+      {dataMingguan && dataMingguan.length > 0 && (
+        <div style={{ marginBottom: '40px' }}>
+          <h5 style={{ textAlign: 'center', marginBottom: '20px' }}>Grafik Kehadiran Mingguan</h5>
+          <div style={{ height: 300 }}>
+            <Line data={weeklyChartData} options={chartOptions} />
+          </div>
+        </div>
+      )}
+
+      {dataPaket && dataPaket.datasets.length > 0 && (
+        <div style={{ marginBottom: '40px' }}>
+          <h5 style={{ textAlign: 'center', marginBottom: '20px' }}>Perbandingan Kehadiran Berdasarkan Paket</h5>
+          <div style={{ height: 300 }}>
+            <Line data={packageChartData} options={chartOptions} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
