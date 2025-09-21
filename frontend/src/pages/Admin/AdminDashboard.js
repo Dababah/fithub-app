@@ -291,7 +291,7 @@ export default function AdminDashboard() {
               <div className="p-3 bg-light rounded d-inline-block">
                 {/* Menampilkan QR Code dari backend */}
                 <img
-                  src={`http://localhost:4000/api/uploads/qr_codes/qr_member_1.png/${qrModal.member.id}`}
+                  src={`http://192.168.56.1:4000/api/uploads/qr_codes/qr_member_1.png/${qrModal.member.id}`}
                   alt={`QR Code ${qrModal.member.name}`}
                   style={{ width: "200px", height: "200px" }}
                 />

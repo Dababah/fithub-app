@@ -163,7 +163,7 @@ export default function MemberDashboard() {
                   <div style={styles.profileSection}>
                     <div style={{ position: 'relative' }}>
                       <img 
-                        src={profile.profilePictureUrl ? `http://localhost:4000${profile.profilePictureUrl}` : defaultProfile}
+                        src={profile.profilePictureUrl ? `http://192.168.56.1:4000${profile.profilePictureUrl}` : defaultProfile}
                         alt="Profil" 
                         style={styles.profileImage} 
                       />
